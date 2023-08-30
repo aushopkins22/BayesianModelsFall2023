@@ -1,0 +1,114 @@
+---
+title: "Lab1_Team_Netherlands"
+author: "Austin Hopkins, Ada Fitz Axen, Sarah Gaulke, Ashley Miller"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+
+```{r}
+#Problem 1
+library(tidyr)
+library(tidyselect)
+library(tidyverse)
+library(tinytex)
+
+hourglass=30
+#vecotr to hold pop data
+x=numeric(hourglass)
+
+#need a vector for time
+time=numeric(hourglass)
+
+#starting variable conditions
+x[1]=.01
+time[1]=1
+
+#Graphics
+par(mfrow=c(4,4))
+par(ask=FALSE)
+
+
+#Loop control
+l=seq(from=.25, to=4, by=.25)
+xt=function(lambda,x,t) x[t]=lambda*x[t-1]*(1-x[t-1])
+
+m=as_tibble(matrix(nrow=length(l)*hourglass,ncol=3))
+names(m)=c("Time","x","lambda")
+
+counter = 1
+for(lambda in l){
+    for(t in 2:hourglass){
+        x[t] = xt(lambda=lambda, x = x, t=t)
+        time[t] = t
+        m[counter,1:3] = t(c(t, x[t], lambda)) 
+        counter = counter + 1
+    }}
+
+
+#plotting
+#ggplot forever
+
+m %>% filter(!is.na(x)) %>% ggplot() + aes(x = Time, y = x) + geom_line() + facet_wrap(~ lambda, scales = "free_y", labeller = label_both)  
+
+
+
+```
+
+
+##Answer problem 1 
+What can you conclude about the effect of λ
+ on the dynamics? Where λ is the per capita rate of population growth. 
+
+The effect of λ is significant. If the lambda is sufficiently large it will lead to non random chaos within the population. Having a small Lambda leads to a steep decline in population. Conversely a large lamba will cause severe rise and fall of xt. 
+
+
+
+#Problem 2
+
+
+```{r}
+#Problem 2
+
+#lambda now varies in steps of 0.05 from 1 to 4
+l = seq(from = 1, to = 4, by = .05)
+#now 100 timesteps, not 30
+tend = 100
+M = as_tibble(matrix(nrow = length(l) * tend, ncol = 3))
+names(M) = c("Time", "x", "lambda")
+counter = 1
+for(lambda in l){
+for(t in 2:tend){
+x[t] = xt(lambda=lambda, x=x, t=t)
+time[t] = t
+M[counter,1:3] = t(c(t, x[t],lambda)) #this transforms to row vector
+counter = counter + 1
+}
+}
+M <- as.data.frame(M)
+M <- M[M$Time >= 51,] #removes all rows where time is less than or equal to 50
+plot(M$lambda, M$x,
+main = "Bifurcation Diagram",
+xlab = expression(lambda),
+ylab = expression(x[t]))
+
+```
+ 
+
+#Answer Problem 2
+Interpretation: When λ (per capita rate of population growth) < 3, the population size x changes steadily
+over time t. Once λ is equal to 3, the population over time changes rapidly, causing the population at time t
+(xt) to fluctuate. Population fluctuations are at fairly regular intervals until λ>3.5, when population growth
+becomes unpredictable. This tells me ecologically there is high competition when λ~3, and a population may
+exceed carrying capacity once λ=4.
